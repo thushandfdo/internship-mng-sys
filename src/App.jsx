@@ -1,10 +1,11 @@
 // local imports
-import { UsersExample } from "./pages";
+import { Signup } from "./pages";
+import "./App.css";
 
 const App = () => {
     return (
         <div className='app'>
-            <UsersExample />
+            <Signup />
         </div>
     )
 }
