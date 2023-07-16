@@ -10,24 +10,16 @@ export const getUsers = async () => {
 export const checkUser = async (regNo, email) => {
     const registeredUsers = await getUsers();
 
-    console.log(registeredUsers);
-
     if (registeredUsers?.length === 0) {
         return null;
     }
 
     const users = [];
     registeredUsers && registeredUsers.map((user) => {
-        if (
-            user.regNo === regNo.toUpperCase()
-            || user.regNo === regNo.toLowerCase()
-            || user.email === email
-        ) {
+        if (user.regNo.toLowerCase() === regNo.toLowerCase() || user.email === email) {
             users.push({ ...user });
         }
     });
-
-    console.log(users);
 
     return users.length > 0 ? true : false;
 };

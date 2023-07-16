@@ -1,11 +1,13 @@
 import { useState } from 'react';
+import { signInWithEmailAndPassword } from "firebase/auth";
 
 // material-ui imports
-import TextField from '@material-ui/core/TextField';
-import Button from '@material-ui/core/Button';
+import Typography from '@mui/material/Typography';
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
 
 // local imports
-import { auth } from './firebase';
+import { auth } from '../../firebase/firebase.jsx';
 
 const SignIn = () => {
     const [email, setEmail] = useState('');
@@ -14,7 +16,11 @@ const SignIn = () => {
 
     const handleSignIn = async () => {
         try {
-            await auth.signInWithEmailAndPassword(email, password);
+            const userCredential = await signInWithEmailAndPassword(auth, email, password)
+            const user = userCredential.user;
+
+            console.log(user.email);
+
             setError('');
         } catch (error) {
             setError(error.message);
@@ -38,7 +44,7 @@ const SignIn = () => {
             <Button variant="contained" onClick={handleSignIn}>
                 Sign In
             </Button>
-            {error && <p>{error}</p>}
+            {error && <Typography>{error}</Typography>}
         </div>
     );
 };

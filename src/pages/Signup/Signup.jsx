@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { createUserWithEmailAndPassword, signOut } from "firebase/auth";
+import { Formik, Form } from 'formik';
+import * as Yup from 'yup';
 
 // material-ui imports
 import Typography from "@mui/material/Typography";
@@ -30,7 +32,37 @@ const SignUp = () => {
         setConfirmPassword("");
     };
 
-    const handleSignup = async () => {
+    const initialValues = {
+        username: '',
+        password: ''
+    };
+
+    const validationSchema = Yup.object().shape({
+        username: Yup.string().required('Username is Required'),
+        password: Yup.string().required('Password is Required')
+    });
+
+    const handleSubmit = (values, onSubmitProps) => {
+        store.dispatch(logOut());
+
+        const data = { username: values.username, password: values.password };
+        store.dispatch(logIn(data));
+
+        onSubmitProps.resetForm();
+
+        const unsubscribe = store.subscribe(() => {
+            const token = store.getState().login.token;
+
+            if (token !== null) {
+                navigate('/dashboard');
+                unsubscribe();
+            } else {
+                setIsAlertOpened(true);
+            }
+        });
+    };
+
+    const handleSignUp = async () => {
         try {
             if (password !== confirmPassword) {
                 setMessage("Passwords do not match");
@@ -45,7 +77,6 @@ const SignUp = () => {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
 
             const user = userCredential.user;
-            console.log(user.email);
 
             await addUser({ regNo, firstName, lastName, email: user.email });
 
@@ -127,7 +158,7 @@ const SignUp = () => {
                 />
                 <Button
                     variant="contained"
-                    onClick={handleSignup}
+                    onClick={handleSignUp}
                 >
                     Sign-up
                 </Button>
