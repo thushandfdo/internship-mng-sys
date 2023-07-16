@@ -1,4 +1,4 @@
 import UsersExample from "./UsersExample/UsersExample.jsx";
-import Signup from "./Signup/Signup.jsx";
+import SignUp from "./Signup/Signup.jsx";
 
-export { UsersExample, Signup };
+export { UsersExample, SignUp };
