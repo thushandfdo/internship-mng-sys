@@ -2,86 +2,66 @@ import { useState } from "react";
 import { createUserWithEmailAndPassword, signOut } from "firebase/auth";
 import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
+import { useNavigate } from "react-router-dom";
 
 // material-ui imports
 import Typography from "@mui/material/Typography";
-import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import { Stack } from "@mui/material";
 
 // local imports
 import { auth } from "../../firebase/firebase";
 import { addUser, checkUser } from "../../utils/userUtils";
+import { TextField } from "../../components";
 
 const SignUp = () => {
-    const [regNo, setRegNo] = useState("");
-    const [firstName, setFirstName] = useState("");
-    const [lastName, setLastName] = useState("");
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [confirmPassword, setConfirmPassword] = useState("");
+    const navigate = useNavigate();
 
     const [message, setMessage] = useState("");
 
-    const handleClear = () => {
-        setRegNo("");
-        setFirstName("");
-        setLastName("");
-        setEmail("");
-        setPassword("");
-        setConfirmPassword("");
-    };
-
     const initialValues = {
-        username: '',
-        password: ''
+        regNo: '',
+        firstName: '',
+        lastName: '',
+        email: '',
+        password: '',
+        confirmPassword: ''
     };
 
     const validationSchema = Yup.object().shape({
-        username: Yup.string().required('Username is Required'),
-        password: Yup.string().required('Password is Required')
+        regNo: Yup.string().required('Registration No is Required'),
+        firstName: Yup.string().required('First Name is Required'),
+        lastName: Yup.string().required('Last Name is Required'),
+        email: Yup.string().email('Invalid Email').required('Email is Required'),
+        password: Yup.string().required('Password is Required'),
+        confirmPassword: Yup.string().oneOf([Yup.ref('password'), null], 'Passwords must match').required('Confirm Password is Required')
     });
 
-    const handleSubmit = (values, onSubmitProps) => {
-        store.dispatch(logOut());
-
-        const data = { username: values.username, password: values.password };
-        store.dispatch(logIn(data));
-
-        onSubmitProps.resetForm();
-
-        const unsubscribe = store.subscribe(() => {
-            const token = store.getState().login.token;
-
-            if (token !== null) {
-                navigate('/dashboard');
-                unsubscribe();
-            } else {
-                setIsAlertOpened(true);
-            }
-        });
-    };
-
-    const handleSignUp = async () => {
+    const handleSignUp = async (values, _onSubmitProps_) => {
         try {
-            if (password !== confirmPassword) {
-                setMessage("Passwords do not match");
-                throw new Error("Passwords do not match");
+            if (!values.regNo || !values.firstName || !values.lastName || !values.email || !values.password || !values.confirmPassword) {
+                setMessage("Please fill all the fields");
+                throw new Error("Please fill all the fields");
             }
-            
-            if (await checkUser(regNo, email)) {
+
+            if (await checkUser(values.regNo, values.email)) {
                 setMessage("User already exists");
                 throw new Error("User already exists");
             }
 
-            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
 
             const user = userCredential.user;
 
-            await addUser({ regNo, firstName, lastName, email: user.email });
+            await addUser({
+                regNo: values.regNo,
+                firstName: values.firstName,
+                lastName: values.lastName,
+                email: user.email
+            });
 
             setMessage("Logged in successfully");
-            handleClear();
+            navigate('/dashboard');
         } catch (error) {
             console.log(error.code || '', error.message || error);
         }
@@ -89,7 +69,6 @@ const SignUp = () => {
 
     const handleLogout = () => {
         try {
-            handleClear();
             signOut(auth);
             setMessage("Logged out successfully");
         } catch (error) {
@@ -97,80 +76,77 @@ const SignUp = () => {
         }
     };
 
-    return (
-        <div style={{ display: "flex", alignItems: "center", minHeight: "100vh" }}>
-            <Stack direction="column" rowGap={2} width="50%" margin={"0 auto"} maxWidth={400}>
-                <Typography variant="h5" align="center">Sign-up</Typography>
-                <TextField
-                    autoFocus
-                    required
-                    size="small"
-                    label="Registration Number"
-                    variant="outlined"
-                    value={regNo}
-                    onChange={(e) => setRegNo(e.target.value.toUpperCase())}
-                    inputProps={{
-                        style: { textTransform: 'uppercase' },
-                    }}
-                />
-                <TextField
-                    required
-                    size="small"
-                    label="First Name"
-                    variant="outlined"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                />
-                <TextField
-                    required
-                    size="small"
-                    label="Last Name"
-                    variant="outlined"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                />
-                <TextField
-                    required
-                    size="small"
-                    label="Email"
-                    variant="outlined"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                />
-                <TextField
-                    required
-                    size="small"
-                    label="Password"
-                    variant="outlined"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                />
-                <TextField
-                    required
-                    size="small"
-                    label="Confirm Password"
-                    variant="outlined"
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                />
+    const signUpForm = (props) => (
+        <Form>
+            <Typography variant="h4" align="center" mb={2}>Sign-up</Typography>
+            <TextField
+                autoFocus={true}
+                name='regNo'
+                label="Registration Number"
+                formikProps={props}
+                textTransform='uppercase'
+            />
+            <TextField
+                name='firstName'
+                label="First Name"
+                formikProps={props}
+            />
+            <TextField
+                name='lastName'
+                label="Last Name"
+                formikProps={props}
+            />
+            <TextField
+                name='email'
+                label="Email"
+                type="email"
+                formikProps={props}
+            />
+            <TextField
+                name='password'
+                label="Password"
+                type="password"
+                formikProps={props}
+            />
+            <TextField
+                name='confirmPassword'
+                label="Confirm Password"
+                type="password"
+                formikProps={props}
+            />
+
+            <Stack direction="row" spacing={2} justifyContent="center" alignItems="center">
                 <Button
+                    fullWidth
+                    type="submit"
                     variant="contained"
-                    onClick={handleSignUp}
                 >
                     Sign-up
                 </Button>
                 <Button
+                    fullWidth
                     variant="outlined"
                     onClick={handleLogout}
                 >
                     Logout
                 </Button>
-
-                {message && <Typography align="center" variant="subtitle2">{message}</Typography>}
             </Stack>
+
+            {message && <Typography align="center" variant="subtitle2" m={2}>{message}</Typography>}
+        </Form>
+    );
+
+    return (
+        <div style={{ display: "flex", alignItems: "center", minHeight: "100vh" }}>
+            <div width="50%" style={{ margin: '0 auto', maxWidth: 400 }}>
+                <Formik
+                    initialValues={initialValues}
+                    validationSchema={validationSchema}
+                    onSubmit={handleSignUp}
+                >
+                    {(props) => signUpForm(props)}
+                </Formik>
+            </div>
         </div>
     )
 };

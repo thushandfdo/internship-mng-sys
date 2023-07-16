@@ -16,7 +16,7 @@ export const checkUser = async (regNo, email) => {
 
     const users = [];
     registeredUsers && registeredUsers.map((user) => {
-        if (user.regNo.toLowerCase() === regNo.toLowerCase() || user.email === email) {
+        if (user?.regNo?.toLowerCase() === regNo.toLowerCase() || user?.email === email) {
             users.push({ ...user });
         }
     });
