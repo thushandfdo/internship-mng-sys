@@ -11,7 +11,7 @@ import { Stack } from "@mui/material";
 import { auth } from "../../firebase/firebase";
 import { addUser, checkUser } from "../../utils/userUtils";
 
-const Signup = () => {
+const SignUp = () => {
     const [regNo, setRegNo] = useState("");
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
@@ -144,4 +144,4 @@ const Signup = () => {
     )
 };
 
-export default Signup;
+export default SignUp;

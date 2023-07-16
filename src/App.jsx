@@ -1,3 +1,4 @@
+
 import {createBrowserRouter,createRoutesFromElements,Route,RouterProvider,Outlet} from "react-router-dom";
 import { Signup,AddOrganization,ViewOrganizations } from "./pages";
 
@@ -22,6 +23,7 @@ const App = () => {
         ))
 
     return <RouterProvider router={router}/>
+
 }
 
 export default App;
