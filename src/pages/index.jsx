@@ -1,6 +1,8 @@
 import UsersExample from "./UsersExample/UsersExample.jsx";
-import Signup from "./Signup/Signup.jsx";
-import  AddOrganization  from "./Organizations/AddOrganizations.jsx"
-import  ViewOrganizations  from "./Organizations/ViewOrganizations.jsx"
+import AddOrganization from "./Organizations/AddOrganizations.jsx";
+import ViewOrganizations from "./Organizations/ViewOrganizations.jsx";
+import SignUp from "./Signup/Signup.jsx";
+import SignIn from "./SignIn/SignIn.jsx";
+import Dashboard from "./Dashboard/Dashboard.jsx";
 
-export { UsersExample, Signup, AddOrganization,ViewOrganizations };
+export { UsersExample, SignUp, SignIn, AddOrganization, ViewOrganizations, Dashboard };
