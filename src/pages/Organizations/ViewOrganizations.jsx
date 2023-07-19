@@ -1,14 +1,17 @@
-import { useState,useEffect } from "react";
-import { getOrgs } from "../../utils/orgUtils";
+import { useState, useEffect } from "react";
+
+// material-ui imports
 import Typography from "@mui/material/Typography";
-import Table from "../../components/Table"
 
-const ViewOrganizations =()=>{
+// local imports
+import { getOrgs } from "../../utils/orgUtils";
+import { Table } from "../../components";
+
+const ViewOrganizations = () => {
     const [orgList, setOrgList] = useState([]);
-    const [message, setMessage] = useState("");
 
-    const  fetchOrg = async () =>{
-        await getOrgs().then((res)=>{
+    const fetchOrg = async () => {
+        await getOrgs().then((res) => {
             setOrgList(res)
         });
     }
@@ -19,12 +22,12 @@ const ViewOrganizations =()=>{
 
     const columns = [
         { id: 'name', label: 'Name' },
-      ];
+    ];
 
-    return(
+    return (
         <>
             <Typography variant="h5" align="center">Organizations</Typography>
-            <Table search="" columns={columns} rows={orgList}/>
+            <Table search="" columns={columns} rows={orgList} />
         </>
     )
 }

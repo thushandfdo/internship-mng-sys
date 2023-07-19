@@ -53,8 +53,8 @@ const SignUp = () => {
                 regNo: values.regNo,
                 firstName: values.firstName,
                 lastName: values.lastName,
-                email: values.email
-            });
+                email: values.email,
+            }, values.password);
 
             setMessage("Logged in successfully");
             navigate('/dashboard');

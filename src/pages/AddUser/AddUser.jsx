@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
 
@@ -11,16 +11,24 @@ import MenuItem from '@mui/material/MenuItem';
 
 // local imports
 import { TextField, Table } from '../../components';
-import { addUser, checkUser } from '../../utils/userUtils';
+import { addUser, checkUser, getUsers } from '../../utils/userUtils';
 
 const AddUser = () => {
     const [message, setMessage] = useState('');
+    const [users, setUsers] = useState([]);
 
     const roles = [
-        { key: 'student', value: 'Student' },
         { key: 'rep', value: 'Representative' },
         { key: 'admin', value: 'Admin' },
         { key: 'superAdmin', value: 'Super Admin' }
+    ];
+
+    const columns = [
+        { id: 'regNo', label: 'Reg. No' },
+        { id: 'firstName', label: 'First Name' },
+        { id: 'lastName', label: 'Last Name' },
+        { id: 'email', label: 'Email' },
+        { id: 'role', label: 'Role' }
     ];
 
     const initialValues = {
@@ -36,6 +44,24 @@ const AddUser = () => {
         role: Yup.string().required('Role is Required'),
         password: Yup.string().required('Password is Required')
     });
+
+    const fetchUsers = async () => {
+        await getUsers().then((data) => {
+            const users = data.map((user) => {
+                return {
+                    ...user,
+                    role: roles.filter((role) => role.key === user.role)[0].value
+                }
+            });
+
+            setUsers(users);
+        });
+    };
+
+    useEffect(() => {
+        fetchUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const handleSave = async (values, _onSubmitProps_) => {
         try {
@@ -53,12 +79,12 @@ const AddUser = () => {
                 regNo: values.regNo,
                 email: values.email,
                 role: values.role,
-                password: values.password
             };
 
-            await addUser(user);
+            await addUser(user, values.password);
 
             setMessage('Successfully added user');
+            fetchUsers();
         } catch (error) {
             setMessage(error.message);
             console.log(error.code || '', error.message || error);
@@ -136,9 +162,9 @@ const AddUser = () => {
                     )}
                 </Formik>
             </div>
-            <div width="45%" style={{ margin: '0 auto', maxWidth: 400 }}>
-                <Typography variant="h5" align="center">Users</Typography>
-                <Table search="" columns={columns} rows={orgList} />
+            <div style={{ margin: '0 auto' }}>
+                <Typography variant="h5" align="center" sx={{ mb: 2 }}>Users</Typography>
+                <Table search="" columns={columns} rows={users} />
             </div>
         </div>
     )

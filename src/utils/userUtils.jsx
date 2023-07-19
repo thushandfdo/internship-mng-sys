@@ -45,13 +45,13 @@ export const checkUser = async (regNo, email) => {
     return users.length > 0 ? true : false;
 };
 
-export const addUser = async (user) => {
+export const addUser = async (user, password) => {
     user.role = user.role ?? 'student';
     user.firstName = user.firstName ?? '';
     user.lastName = user.lastName ?? '';
 
     try {
-        await createUserWithEmailAndPassword(auth, user.email, user.password);
+        await createUserWithEmailAndPassword(auth, user.email, password);
 
         const usersCollection = collection(db, 'users');
         await addDoc(usersCollection, user);
