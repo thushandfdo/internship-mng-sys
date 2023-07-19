@@ -11,16 +11,18 @@ import { addOrg } from "../../utils/orgUtils";
 
 const AddOrganization = () => {
     const [name, setName] = useState("");
+    const [groupLink, setGroupLink] = useState("");
 
     const [message, setMessage] = useState("");
 
     const handleClear = () => {
         setName("");
+        setGroupLink("")
     };
 
     const handleRegister = async () => {
         try {
-            await addOrg({name:name});
+            await addOrg({name:name,selected:0,ongoing:0,ns:0,group:groupLink});
             setMessage("organization added successfully");
             handleClear();
         } catch (error) {
@@ -44,6 +46,14 @@ const AddOrganization = () => {
                     inputProps={{
                         style: { textTransform: 'uppercase' },
                     }}
+                />
+                <TextField
+                    required
+                    size="small"
+                    label="Group Link"
+                    variant="outlined"
+                    value={groupLink}
+                    onChange={(e) => setGroupLink(e.target.value)}
                 />
                 <Button
                     variant="contained"
