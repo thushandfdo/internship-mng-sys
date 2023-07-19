@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { createUserWithEmailAndPassword, signOut } from "firebase/auth";
+import { signOut } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
 import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
-import { useNavigate } from "react-router-dom";
 
 // material-ui imports
 import Typography from "@mui/material/Typography";
@@ -49,15 +49,11 @@ const SignUp = () => {
                 throw new Error("User already exists");
             }
 
-            const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
-
-            const user = userCredential.user;
-
             await addUser({
                 regNo: values.regNo,
                 firstName: values.firstName,
                 lastName: values.lastName,
-                email: user.email
+                email: values.email
             });
 
             setMessage("Logged in successfully");

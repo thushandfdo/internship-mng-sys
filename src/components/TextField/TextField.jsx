@@ -9,7 +9,6 @@ const TextField = (props) => {
         label,
         formikProps,
         width = '100%',
-        updateStore,
         autoFocus = false,
         size = 'small',
         textTransform = 'none',
@@ -26,7 +25,7 @@ const TextField = (props) => {
             variant={variant}
             error={formikProps.errors[name] && formikProps.touched[name]}
             helperText={formikProps.touched[name] && formikProps.errors[name]}
-            onChange={(updateStore && updateStore(name, formikProps.values[name])) || formikProps.handleChange}
+            onChange={formikProps.handleChange}
             onBlur={formikProps.handleBlur}
             sx={{ width, marginBottom: 2 }}
             inputProps={{

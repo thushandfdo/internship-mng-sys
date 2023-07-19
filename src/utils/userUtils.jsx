@@ -1,9 +1,30 @@
 import { collection, doc, getDocs, addDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { createUserWithEmailAndPassword } from "firebase/auth";
+
+// local imports
+import { auth } from '../firebase/firebase.jsx';
 import { db } from '../firebase/firebase.jsx';
+
+export const getUser = async (email) => {
+    try {
+        const users = await getUsers();
+
+        if (users?.length === 0) {
+            return null;
+        }
+
+        const user = users.filter((user) => user.email === email);
+
+        return user.length > 0 ? user[0] : null;
+    } catch (error) {
+        console.error("Error fetching users:", error);
+    }
+};
 
 export const getUsers = async () => {
     const usersCollection = collection(db, 'users');
     const data = await getDocs(usersCollection);
+
     return data.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
 };
 
@@ -25,8 +46,19 @@ export const checkUser = async (regNo, email) => {
 };
 
 export const addUser = async (user) => {
-    const usersCollection = collection(db, 'users');
-    await addDoc(usersCollection, user);
+    user.role = user.role ?? 'student';
+    user.firstName = user.firstName ?? '';
+    user.lastName = user.lastName ?? '';
+
+    try {
+        await createUserWithEmailAndPassword(auth, user.email, user.password);
+
+        const usersCollection = collection(db, 'users');
+        await addDoc(usersCollection, user);
+    }
+    catch (error) {
+        console.error("Error adding user:", error);
+    }
 };
 
 export const updateUser = async (id, user) => {
