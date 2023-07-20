@@ -18,6 +18,7 @@ const AddUser = () => {
     const [users, setUsers] = useState([]);
 
     const roles = [
+        { key: 'student', value: 'Student'},
         { key: 'rep', value: 'Representative' },
         { key: 'admin', value: 'Admin' },
         { key: 'superAdmin', value: 'Super Admin' }
@@ -32,17 +33,15 @@ const AddUser = () => {
     ];
 
     const initialValues = {
-        regNo: '',
         email: '',
-        role: roles[0].key,
-        password: ''
+        password: '',
+        role: roles[1].key ?? '',
     };
 
     const validationSchema = Yup.object().shape({
-        regNo: Yup.string().required('Registration No is Required'),
         email: Yup.string().email('Invalid Email').required('Email is Required'),
+        password: Yup.string().required('Password is Required'),
         role: Yup.string().required('Role is Required'),
-        password: Yup.string().required('Password is Required')
     });
 
     const fetchUsers = async () => {
@@ -50,11 +49,13 @@ const AddUser = () => {
             const users = data.map((user) => {
                 return {
                     ...user,
-                    role: roles.filter((role) => role.key === user.role)[0].value
+                    role: roles.filter((role) => role.key === user.role)[0]?.value
                 }
             });
 
             setUsers(users);
+        }).catch((error) => {
+            console.log(error);
         });
     };
 
@@ -65,18 +66,17 @@ const AddUser = () => {
 
     const handleSave = async (values, _onSubmitProps_) => {
         try {
-            if (!values.email || !values.regNo || !values.role) {
+            if (!values.email || !values.role) {
                 setMessage("Please fill all the fields");
                 throw new Error("Please fill all the fields");
             }
 
-            if (await checkUser(values.regNo, values.email)) {
+            if (await checkUser('', values.email)) {
                 setMessage("User already exists");
                 throw new Error("User already exists");
             }
 
             const user = {
-                regNo: values.regNo,
                 email: values.email,
                 role: values.role,
             };
@@ -112,9 +112,9 @@ const AddUser = () => {
                                 formikProps={props}
                             />
                             <TextField
-                                name="regNo"
-                                label="Registration No"
-                                textTransform="uppercase"
+                                name='password'
+                                label="Password"
+                                type="password"
                                 formikProps={props}
                             />
                             <MuiTextField
@@ -123,22 +123,16 @@ const AddUser = () => {
                                 size="small"
                                 label="Role"
                                 name="role"
-                                defaultValue={roles[0].key}
+                                defaultValue={''}
                                 onChange={props.handleChange}
                                 sx={{ mb: 2 }}
                             >
-                                {roles.map((role) => (
+                                {roles.filter((role) => role.key !== 'student').map((role) => (
                                     <MenuItem key={role.key} value={role.key}>
                                         {role.value}
                                     </MenuItem>
                                 ))}
                             </MuiTextField>
-                            <TextField
-                                name='password'
-                                label="Password"
-                                type="password"
-                                formikProps={props}
-                            />
 
                             <Stack direction="row" spacing={2} justifyContent="center" alignItems="center">
                                 <Button
@@ -163,7 +157,7 @@ const AddUser = () => {
                 </Formik>
             </div>
             <div style={{ margin: '0 auto' }}>
-                <Typography variant="h5" align="center" sx={{ mb: 2 }}>Users</Typography>
+                <Typography variant="h4" align="center" sx={{ mb: 2 }}>Users</Typography>
                 <Table search="" columns={columns} rows={users} />
             </div>
         </div>

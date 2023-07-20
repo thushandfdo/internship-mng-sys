@@ -28,21 +28,42 @@ export const getUsers = async () => {
     return data.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
 };
 
-export const checkUser = async (regNo, email) => {
-    const registeredUsers = await getUsers();
+export const getReps = async () => {
+    try {
+        const users = await getUsers();
 
-    if (registeredUsers?.length === 0) {
-        return null;
-    }
-
-    const users = [];
-    registeredUsers && registeredUsers.map((user) => {
-        if (user?.regNo?.toLowerCase() === regNo.toLowerCase() || user?.email === email) {
-            users.push({ ...user });
+        if (users?.length === 0) {
+            return null;
         }
-    });
 
-    return users.length > 0 ? true : false;
+        const reps = users.filter((user) => user.role === 'rep');
+
+        return reps.length > 0 ? reps : null;
+    } catch (error) {
+        console.error("Error fetching reps:", error);
+    }
+};
+
+export const checkUser = async (regNo, email) => {
+    try {
+        const registeredUsers = await getUsers();
+
+        if (registeredUsers?.length) {
+            return null;
+        }
+
+        const users = [];
+        registeredUsers?.map((user) => {
+            if (user?.regNo?.toLowerCase() === regNo.toLowerCase() || user?.email === email) {
+                users.push({ ...user });
+            }
+        });
+
+        return users.length > 0 ? true : false;
+    }
+    catch(error) {
+        console.error("Error checking user:", error);
+    }
 };
 
 export const addUser = async (user, password) => {
