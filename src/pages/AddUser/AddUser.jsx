@@ -158,7 +158,8 @@ const AddUser = () => {
             </div>
             <div style={{ margin: '0 auto' }}>
                 <Typography variant="h4" align="center" sx={{ mb: 2 }}>Users</Typography>
-                <Table search="" columns={columns} rows={users} />
+                <Table search="" columns={columns} rows={users}
+                />
             </div>
         </div>
     )

@@ -29,7 +29,7 @@ const ViewOrganizations = () => {
     return (
         <>
             <Typography variant="h5" align="center">Organizations</Typography>
-            <Table search="" columns={columns} rows={orgList} indexing={true} />
+            <Table search={''} columns={columns} rows={orgList} indexing={true} />
         </>
     )
 }
