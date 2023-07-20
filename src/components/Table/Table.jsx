@@ -20,6 +20,8 @@ import DeleteIcon from '@mui/icons-material/Delete';
 // local imports
 import Confirm from '../Confirm/Confirm';
 
+const border = '1px solid #A9A9A9';
+
 const descendingComparator = (a, b, orderBy) => {
     if (b[orderBy] < a[orderBy]) {
         return -1;
@@ -49,7 +51,7 @@ const stableSort = (array, comparator) => {
 };
 
 const EnhancedTableHead = (props) => {
-    const { order, orderBy, onRequestSort, columns, isDeleteCol } = props;
+    const { order, orderBy, onRequestSort, columns, isDeleteCol, indexing } = props;
 
     const createSortHandler = (property) => (event) => {
         onRequestSort(event, property);
@@ -58,13 +60,41 @@ const EnhancedTableHead = (props) => {
     return (
         <TableHead>
             <TableRow>
+                {
+                    indexing && (
+                        <TableCell
+                            sortDirection={orderBy === '#' ? order : false}
+                            sx={{
+                                borderRight: border,
+                                borderBottom: border,
+                                padding: '8px'
+                            }}
+                        >
+                            <Stack
+                                direction='row'
+                                alignItems='center'
+                                justifyContent='center'
+                                onClick={createSortHandler('#')}
+                                sx={{ cursor: 'pointer' }}
+                            >
+                                {orderBy === '#' && <TableSortLabel
+                                    active={orderBy === '#'}
+                                    direction={orderBy === '#' ? order : 'asc'}
+                                />}
+                                <Typography align='center' sx={{ flexGrow: 1, padding: `0 ${orderBy === '#' ? '0' : '10px'}` }}>
+                                    <b>#</b>
+                                </Typography>
+                            </Stack>
+                        </TableCell>
+                    )
+                }
                 {columns.map((column, index) => (
                     <TableCell
                         key={column.id}
                         sortDirection={orderBy === column.id ? order : false}
                         sx={{
-                            borderRight: `${((index !== columns.length - 1) && !isDeleteCol) ? '1px solid black' : 'none'}`,
-                            borderBottom: '1px solid black',
+                            borderRight: `${((index !== columns.length - 1) && !isDeleteCol) ? border : 'none'}`,
+                            borderBottom: border,
                             padding: '8px'
                         }}
                     >
@@ -90,7 +120,7 @@ const EnhancedTableHead = (props) => {
                         <TableCell
                             sx={{
                                 borderRight: 'none',
-                                borderBottom: '1px solid black'
+                                borderBottom: border
                             }}
                         >
                             <Typography align='center' sx={{ flexGrow: 1 }}>
@@ -114,12 +144,13 @@ EnhancedTableHead.propTypes = {
             label: PropTypes.string.isRequired
         })
     ).isRequired,
-    isDeleteCol: PropTypes.bool
+    isDeleteCol: PropTypes.bool,
+    indexing: PropTypes.bool,
 };
 
-const EnhancedTable = ({ search, columns, rows, isDeleteCol, onDelete }) => {
+const EnhancedTable = ({ search, columns, rows, isDeleteCol, onDelete, indexing }) => {
     const [order, setOrder] = useState('asc');
-    const [orderBy, setOrderBy] = useState(columns[0].id);
+    const [orderBy, setOrderBy] = useState(indexing ? '#' : columns[0].id);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
@@ -151,8 +182,11 @@ const EnhancedTable = ({ search, columns, rows, isDeleteCol, onDelete }) => {
     };
 
     return (
-        <Box sx={{ width: '100%' }}>
-            <Paper sx={{ width: '100%', mb: 2, border: '1px solid black' }}>
+        <Box>
+            <Paper sx={{
+                border: border,
+                boxShadow: 'none',
+            }}>
                 <TableContainer>
                     <Table>
                         <EnhancedTableHead
@@ -161,8 +195,13 @@ const EnhancedTable = ({ search, columns, rows, isDeleteCol, onDelete }) => {
                             onRequestSort={handleRequestSort}
                             columns={columns}
                             isDeleteCol={isDeleteCol}
+                            indexing={indexing}
                         />
-                        <TableBody>
+                        <TableBody sx={{
+                            '& .MuiTableCell-root': {
+                                borderBottom: border,
+                            },
+                        }}>
                             {rows.length > 0 ? (
                                 stableSort(rows, getComparator(order, orderBy))
                                     .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
@@ -170,17 +209,39 @@ const EnhancedTable = ({ search, columns, rows, isDeleteCol, onDelete }) => {
                                         columns.some((column) => row[column.id]?.toLowerCase().includes(search.toLowerCase()))
                                     )
                                     .map((row, index) => (
-                                        <TableRow hover tabIndex={-1} key={index}>
+                                        <TableRow tabIndex={-1} key={index}
+                                            sx={{
+                                                '&:hover': {
+                                                    backgroundColor: '#f0f0f0',
+                                                },
+                                                backgroundColor: `${(index % 2 === 0) ? '#f5f5f5' : 'white'}`,
+                                            }}
+                                        >
+                                            {
+                                                indexing && (
+                                                    <TableCell
+                                                        align="center"
+                                                        sx={{
+                                                            borderRight: border,
+                                                        }}
+                                                        size='small'
+                                                    >
+                                                        {index + 1}
+                                                    </TableCell>
+                                                )
+                                            }
                                             {columns.map((column, index) => (
                                                 <TableCell
                                                     key={index}
                                                     align="center"
                                                     sx={{
-                                                        borderRight: `${((index !== columns.length - 1) && !isDeleteCol) ? '1px solid black' : 'none'}`,
+                                                        borderRight: `${((index !== columns.length - 1) && !isDeleteCol) ? border : 'none'}`,
                                                     }}
                                                     size='small'
                                                 >
-                                                    {row[column.id]}
+                                                    {(column.id.toLowerCase().includes('link')) ? (
+                                                        <a href={row[column.id]} target="_blank" rel="noreferrer">{row[column.id]}</a>
+                                                    ) : row[column.id]}
                                                 </TableCell>
                                             ))}
                                             {
@@ -188,7 +249,7 @@ const EnhancedTable = ({ search, columns, rows, isDeleteCol, onDelete }) => {
                                                     <TableCell
                                                         align="center"
                                                         sx={{
-                                                            borderRight: `${((index !== columns.length - 1) && !isDeleteCol) ? '1px solid black' : 'none'}`,
+                                                            borderRight: border,
                                                         }}
                                                         size='small'
                                                     >
@@ -223,12 +284,11 @@ const EnhancedTable = ({ search, columns, rows, isDeleteCol, onDelete }) => {
                     page={page}
                     onPageChange={handleChangePage}
                     onRowsPerPageChange={handleChangeRowsPerPage}
-                    sx={{ 
-                        borderTop: '1px solid black', 
+                    sx={{
                         '& .MuiToolbar-root': {
                             padding: '0',
                             margin: '0',
-                            minHeight: '0'
+                            minHeight: '0',
                         },
                     }}
                 />
