@@ -26,7 +26,7 @@ const Autocomplete = (props) => {
                     <TextField 
                         {...params} label={label} variant={variant} 
                         error={(formikProps?.errors[name] && formikProps?.touched[name]) ? true : false}
-                        helperText={formikProps?.errors[name] && formikProps?.touched[name]}
+                        helperText={formikProps?.errors[name]}
                     />
                 }
                 size={size}

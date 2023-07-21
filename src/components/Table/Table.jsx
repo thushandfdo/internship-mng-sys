@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 
 // material-ui imports
@@ -157,6 +157,18 @@ const EnhancedTable = ({ search, columns, rows, isDeleteCol, onDelete, indexing 
     const [isConfirmOpened, setIsConfirmOpened] = useState(false);
     const [rowIdToDelete, setRowIdToDelete] = useState(null);
 
+    const [showEmptyMessage, setShowEmptyMessage] = useState(false);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setShowEmptyMessage(true);
+        }, 5000);
+
+        return () => {
+            clearTimeout(timer);
+        };
+    }, []);
+
     const handleRequestSort = (_event_, property) => {
         const isAsc = orderBy === property && order === 'asc';
         setOrder(isAsc ? 'desc' : 'asc');
@@ -268,8 +280,8 @@ const EnhancedTable = ({ search, columns, rows, isDeleteCol, onDelete, indexing 
                                     ))
                             ) : (
                                 <TableRow tabIndex={-1}>
-                                    <TableCell align="center" colSpan={columns.length} sx={{ color: 'gray', fontSize: '18px' }}>
-                                        Table is empty...!
+                                    <TableCell align="center" colSpan={columns.length + (indexing ? 1 : 0) + (isDeleteCol ? 1 : 0)} sx={{ color: 'gray', fontSize: '18px' }}>
+                                        {showEmptyMessage ? 'Table is empty or something went wrong...!' : 'Loading...!'}
                                     </TableCell>
                                 </TableRow>
                             )}
