@@ -180,7 +180,11 @@ const EnhancedTable = ({ search, columns, rows, isDeleteCol, onDelete }) => {
                                                     }}
                                                     size='small'
                                                 >
-                                                    {row[column.id]}
+                                                {column.id ==="groupLink" ? 
+                                                <a href={row[column.id]}> {row[column.id]} </a>
+                                                :row[column.id]
+                                                }
+                                                
                                                 </TableCell>
                                             ))}
                                             {

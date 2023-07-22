@@ -22,11 +22,13 @@ const ViewOrganizations = () => {
 
     const columns = [
         { id: 'name', label: 'Name' },
+        { id: 'groupLink', label: 'Group Link' },
+        { id: 'round', label: 'Round' },
     ];
 
     return (
         <>
-            <Typography variant="h5" align="center">Organizations</Typography>
+            <Typography variant="h5" align="center" mb={4}>Organizations</Typography>
             <Table search="" columns={columns} rows={orgList} />
         </>
     )
