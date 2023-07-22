@@ -1,5 +1,22 @@
-import { collection, doc, getDocs, addDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase/firebase.jsx';
+
+export const getOrgById = async (id) => {
+    try {
+        const orgCollection = collection(db, 'organizations');
+        const orgDoc = doc(orgCollection, id);
+        
+        const orgSnapshot = await getDoc(orgDoc);
+
+        if (orgSnapshot.exists()) {
+            return { ...orgSnapshot.data(), id: orgSnapshot.id };
+        } else {
+            return {};
+        }
+    } catch (error) {
+        console.error("Error fetching org:", error);
+    }
+};
 
 export const getOrgs = async () => {
     const orgCollection = collection(db, 'organizations');

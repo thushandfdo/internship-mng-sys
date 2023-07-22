@@ -21,15 +21,15 @@ const ViewOrganizations = () => {
     }, [])
 
     const columns = [
-        { id: 'name', label: 'Name' },
-        { id: 'groupLink', label: 'Group Link' },
-        { id: 'round', label: 'Round' },
+        { id: 'round', label: '#Round' },
+        { id: 'name', label: 'Company Name' },
+        { id: 'groupLink', label: 'WhatsApp Group Link' }
     ];
 
     return (
         <>
-            <Typography variant="h5" align="center" mb={4}>Organizations</Typography>
-            <Table search="" columns={columns} rows={orgList} />
+            <Typography variant="h5" align="center">Organizations</Typography>
+            <Table search={''} columns={columns} rows={orgList} indexing={true} />
         </>
     )
 }

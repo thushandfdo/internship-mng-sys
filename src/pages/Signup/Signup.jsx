@@ -11,7 +11,7 @@ import Stack from "@mui/material/Stack";
 
 // local imports
 import { auth } from "../../firebase/firebase";
-import { addUser, checkUser, getReps } from "../../utils/userUtils";
+import { addUser, checkUser, getUsersByRole } from "../../utils/userUtils";
 import { TextField, Autocomplete } from "../../components";
 
 const SignUp = () => {
@@ -22,7 +22,7 @@ const SignUp = () => {
 
     useEffect(() => {
         const fetchReps = async () => {
-            await getReps().then((reps) => {
+            await getUsersByRole('rep').then((reps) => {
                 setReps(reps);
             }).catch((error) => {
                 console.log(error);

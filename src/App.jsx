@@ -3,7 +3,7 @@ import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider, O
 import { auth } from "./firebase/firebase.jsx";
 
 // local imports
-import { SignUp, SignIn, AddOrganization, ViewOrganizations, Dashboard, AddUser } from "./pages";
+import { SignUp, SignIn, AddOrganization, ViewOrganizations, Dashboard, AddUser, Events } from "./pages";
 import "./App.css";
 
 const App = () => {
@@ -39,6 +39,7 @@ const App = () => {
                 <Route path="/" element={<SignUp />} />
                 <Route path="/login" element={<SignIn />} />
                 <Route path="/dashboard" element={<ProtectedRoute element={<Dashboard />} />} />
+                <Route path="/events" element={<ProtectedRoute element={<Events />} />} />
                 <Route path="/add-user" element={<ProtectedRoute element={<AddUser />} />} />
                 <Route path="/organization/add" element={<ProtectedRoute element={<AddOrganization />} />} />
                 <Route path="/organization/view" element={<ProtectedRoute element={<ViewOrganizations />} />} />

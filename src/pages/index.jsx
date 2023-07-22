@@ -5,5 +5,6 @@ import SignUp from "./SignUp/SignUp.jsx";
 import SignIn from "./SignIn/SignIn.jsx";
 import Dashboard from "./Dashboard/Dashboard.jsx";
 import AddUser from "./AddUser/AddUser.jsx";
+import Events from "./Events/Events.jsx";
 
-export { UsersExample, SignUp, SignIn, AddOrganization, ViewOrganizations, Dashboard, AddUser };
+export { UsersExample, SignUp, SignIn, AddOrganization, ViewOrganizations, Dashboard, AddUser, Events };
