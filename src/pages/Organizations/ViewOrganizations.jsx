@@ -6,6 +6,7 @@ import Typography from "@mui/material/Typography";
 
 // local imports
 import { getOrgs } from "../../utils/orgUtils";
+import { getUser } from '../../utils/userUtils.jsx';
 import { Table } from "../../components";
 
 const ViewOrganizations = () => {
@@ -13,13 +14,26 @@ const ViewOrganizations = () => {
     const [grpLink, setGrpLink] = useState("");
     const [isclicked, setIsClicked] = useState(false);
 
+    const [currentUser, setCurrentUser] = useState(null);
+
+    useEffect(() => {
+        const getCurrentUser = async (email) => {
+            if (email) {
+                const loggedUser = await getUser(email);
+                setCurrentUser(loggedUser);
+            }
+        };
+        getCurrentUser(auth.currentUser?.email);
+    }, []);
+
+
     const fetchOrg = async () => {
         await getOrgs().then((res) => {
             setOrgList(res)
             setGrpLink(res[0].groupLink)
         });
     }
-    console.log()
+
 
     useEffect(() => {
         fetchOrg();
@@ -30,7 +44,7 @@ const ViewOrganizations = () => {
         { id: 'name', label: 'Company Name' },
     ];
 
-    if (0) {
+    if (currentUser.role==="rep" || currentUser.role==="superAdmin") {
         columns.push({ id: 'groupLink', label: 'WhatsApp Group Link' });
     }
 
@@ -65,7 +79,7 @@ const ViewOrganizations = () => {
             </div>
             {isclicked && <div>
             <Typography variant="h4" align="center" mb="3vh">Details</Typography>
-            <a href={grpLink} style={{position:"relative",bottom:"2vh"}}>WHATSAPP GROUP LINK</a>
+            {currentUser.role==="student" && <a href={grpLink} style={{position:"relative",bottom:"2vh"}}>WHATSAPP GROUP LINK</a>}
             <Table 
                 search={''} 
                 columns={[{ id: 'round', label: 'Student' }]} 
