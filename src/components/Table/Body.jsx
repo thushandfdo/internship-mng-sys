@@ -72,6 +72,22 @@ const TableBody = (props) => {
         setIsConfirmOpened(false);
     };
 
+    const getFilteredList = () => {
+        let list = stableSort(rows, getComparator(order, orderBy));
+
+        for (let searchField in search) {
+            list = list.filter((row) =>
+                columns.some((column) =>
+                    column.id === searchField
+                        ? row[column.id]?.toLowerCase().includes(search[searchField]?.toLowerCase())
+                        : false
+                )
+            );
+        }
+
+        return list;
+    };
+
     return (
         <>
             <MuiTableBody sx={{
@@ -80,11 +96,7 @@ const TableBody = (props) => {
                 },
             }}>
                 {rows.length > 0 ? (
-                    stableSort(rows, getComparator(order, orderBy))
-                        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                        .filter((row) =>
-                            columns.some((column) => row[column.id]?.toLowerCase().includes(search.toLowerCase()))
-                        )
+                    getFilteredList().slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                         .map((row, index) => (
                             <TableRow tabIndex={-1} key={index}
                                 sx={{
@@ -113,6 +125,9 @@ const TableBody = (props) => {
                                         align="center"
                                         sx={{
                                             borderRight: `${((index !== columns.length - 1) || (isDeleteCol || isEditCol)) ? border : 'none'}`,
+                                            whiteSpace: 'nowrap',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
                                         }}
                                         size='small'
                                     >

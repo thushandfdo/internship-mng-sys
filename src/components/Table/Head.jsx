@@ -2,24 +2,28 @@ import PropTypes from 'prop-types';
 
 // material-ui imports
 import TableCell from '@mui/material/TableCell';
-import TableHead from '@mui/material/TableHead';
+import MuiTableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import TableSortLabel from '@mui/material/TableSortLabel';
 import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
+import TextField from '@mui/material/TextField';
+import Autocomplete from '@mui/material/Autocomplete';
 
 // local imports
 import { border } from './Table';
 
-const TableHeader = (props) => {
-    const { order, orderBy, onRequestSort, columns, isDeleteCol, isEditCol, indexing } = props;
+const TableHead = (props) => {
+    const {
+        onSearchChange, order, orderBy, onRequestSort, columns, isDeleteCol, isEditCol, indexing
+    } = props;
 
     const createSortHandler = (property) => (event) => {
         onRequestSort(event, property);
     };
 
     return (
-        <TableHead>
+        <MuiTableHead>
             <TableRow>
                 {
                     indexing && (
@@ -92,11 +96,81 @@ const TableHeader = (props) => {
                     )
                 }
             </TableRow>
-        </TableHead>
+            <TableRow>
+                {
+                    indexing && (
+                        <TableCell
+                            sx={{
+                                borderRight: border,
+                                borderBottom: border,
+                                padding: '4px'
+                            }}
+                        />
+                    )
+                }
+                {columns.map((column, index) => (
+                    <TableCell
+                        key={column.id}
+                        sx={{
+                            borderRight: `${((index !== columns.length - 1) || (isDeleteCol || isEditCol)) ? border : 'none'}`,
+                            borderBottom: border,
+                            padding: '4px'
+                        }}
+                    >
+                        {column.filterField ? (column.filterField === 'text' ? (
+                            <TextField
+                                size='small'
+                                fullWidth
+                                placeholder='Search...'
+                                // value={search[column.id] ? search[column.id] : ''}
+                                onChange={(e) => {
+                                    onSearchChange(column.id, e.target.value);
+                                }}
+                                sx={{ 
+                                    '& .MuiInputBase-input': { padding: '4px 8px' },
+                                }}
+                            />
+                        ) : (
+                            <Autocomplete
+                                defaultValue={null}
+                                // value={search[column.id] ?? null}
+                                options={column.filterField}
+                                getOptionLabel={(option) => option.value}
+                                onChange={(_event_, newValue) => onSearchChange(column.id, newValue?.key ?? '')}
+                                renderInput={(params) =>
+                                    <TextField
+                                        {...params} variant='outlined' placeholder='Select'
+                                    />
+                                }
+                                size='small'
+                                sx={{
+                                    '& .MuiAutocomplete-inputRoot[class*="MuiOutlinedInput-root"]': {
+                                        padding: '2px 8px',
+                                    },
+                                }}
+                            />
+                        )) : ''}
+                    </TableCell>
+                ))}
+                {
+                    (isEditCol || isDeleteCol) && (
+                        <TableCell
+                            sx={{
+                                borderRight: 'none',
+                                borderBottom: border,
+                                padding: '4px'
+                            }}
+                        />
+                    )
+                }
+            </TableRow>
+        </MuiTableHead>
     );
 };
 
-TableHeader.propTypes = {
+TableHead.propTypes = {
+    // search: PropTypes.object,
+    onSearchChange: PropTypes.func,
     onRequestSort: PropTypes.func.isRequired,
     order: PropTypes.oneOf(['asc', 'desc']).isRequired,
     orderBy: PropTypes.string.isRequired,
@@ -111,4 +185,4 @@ TableHeader.propTypes = {
     indexing: PropTypes.bool,
 };
 
-export default TableHeader;
+export default TableHead;

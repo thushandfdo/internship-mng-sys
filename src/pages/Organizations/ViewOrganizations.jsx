@@ -81,7 +81,6 @@ const ViewOrganizations = () => {
             <Typography variant="h4" align="center" mb="3vh">Details</Typography>
             {currentUser.role==="student" && <a href={grpLink} style={{position:"relative",bottom:"2vh"}}>WHATSAPP GROUP LINK</a>}
             <Table 
-                search={''} 
                 columns={[{ id: 'round', label: 'Student' }]} 
                 rows={orgList.map((org) => ({
                         round:org.round

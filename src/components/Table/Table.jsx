@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 // material-ui imports
 import Box from '@mui/material/Box';
@@ -8,23 +8,35 @@ import TablePagination from '@mui/material/TablePagination';
 import Paper from '@mui/material/Paper';
 
 // local imports
-import TableHeader from './Header';
+import TableHead from './Head';
 import TableBody from './Body';
 
 export const border = '1px solid #A9A9A9';
 
 const EnhancedTable = (props) => {
     const {
-        search, columns, rows, onDelete, onEdit, indexing
+        columns, rows, onDelete, onEdit, indexing
     } = props;
 
     const isDeleteCol = onDelete ? true : false;
     const isEditCol = onEdit ? true : false;
 
+    const [search, setSearch] = useState(null);
     const [order, setOrder] = useState('asc');
     const [orderBy, setOrderBy] = useState(indexing ? '#' : columns[0].id);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
+
+    const handleSearchChange = (field, value) => {
+        setSearch({ ...search, [field]: value });
+    };
+
+    useEffect(() => {
+        for (let column of columns) {
+            if (column.filterField) handleSearchChange(column.id, '');
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [columns]);
 
     const handleRequestSort = (_event_, property) => {
         const isAsc = orderBy === property && order === 'asc';
@@ -49,7 +61,8 @@ const EnhancedTable = (props) => {
             }}>
                 <TableContainer>
                     <Table>
-                        <TableHeader
+                        <TableHead
+                            // search={search}
                             order={order}
                             orderBy={orderBy}
                             onRequestSort={handleRequestSort}
@@ -57,8 +70,9 @@ const EnhancedTable = (props) => {
                             isDeleteCol={isDeleteCol}
                             isEditCol={isEditCol}
                             indexing={indexing}
+                            onSearchChange={handleSearchChange}
                         />
-                        
+
                         <TableBody
                             search={search}
                             columns={columns}

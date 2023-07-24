@@ -42,13 +42,13 @@ const Events = () => {
     ];
 
     const columns = [
-        { id: 'company', label: 'Comapny' },
-        { id: 'student', label: 'Student' },
-        { id: 'calledDate', label: 'Called Date' },
-        { id: 'interviewDate', label: 'Date' },
+        { id: 'company', label: 'Comapny', filterField: 'text' },
+        { id: 'student', label: 'Student', filterField: 'text' },
+        { id: 'calledDate', label: 'Called Date', filterField: 'text' },
+        { id: 'interviewDate', label: 'Date', filterField: 'text' },
         { id: 'interviewTime', label: 'Time' },
-        { id: 'type', label: 'Type' },
-        { id: 'status', label: 'Status' },
+        { id: 'type', label: 'Type', filterField: types },
+        { id: 'status', label: 'Status', filterField: statuses },
     ];
 
     const initialValues = {
@@ -354,7 +354,6 @@ const Events = () => {
 
             <Typography variant="h4" align="center">Events</Typography>
             <Table
-                search=''
                 columns={columns}
                 rows={events}
                 indexing={true}
