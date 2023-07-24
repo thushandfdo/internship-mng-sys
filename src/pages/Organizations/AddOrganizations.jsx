@@ -1,74 +1,109 @@
 import { useState } from "react";
+import { Formik, Form } from 'formik';
+import * as Yup from 'yup';
 
 // material-ui imports
 import Typography from "@mui/material/Typography";
-import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import { Stack } from "@mui/material";
 
 // local imports
-import { addOrg } from "../../utils/orgUtils";
+import { addOrg ,checkOrg } from "../../utils/orgUtils";
+import { TextField } from '../../components'
 
 const AddOrganization = () => {
-    const [name, setName] = useState("");
-    const [groupLink, setGroupLink] = useState("");
-
+    const initialValues = {
+        name: '',
+        groupLink: '',
+        round:'',
+    }
     const [message, setMessage] = useState("");
 
-    const handleClear = () => {
-        setName("");
-        setGroupLink("")
-    };
+    const validationSchema = Yup.object().shape({
+        name: Yup.string().required('Name is Required'),
+        groupLink: Yup.string().required('Group Link is Required'),
+        round: Yup.string().required('Round is Required'),
+    });
 
-    const handleRegister = async () => {
+    const handleRegister = async (values, _onSubmitProps_) => {
         try {
-            await addOrg({name:name,selected:0,ongoing:0,ns:0,group:groupLink});
-            setMessage("organization added successfully");
-            handleClear();
+            if (!values.name || !values.groupLink || !values.round) {
+                setMessage("Please fill all the fields");
+                throw new Error("Please fill all the fields");
+            }
+
+            if (await checkOrg(values.name)) {
+                setMessage("Organization already exists");
+                throw new Error("Organization already exists");
+            }
+
+            const organization = {
+                name: values.name.toUpperCase(),
+                groupLink: values.groupLink,
+                round: values.round
+            };
+
+            await addOrg(organization);
+            setMessage('Successfully added organization');
+            _onSubmitProps_.resetForm();
         } catch (error) {
+            setMessage(error.message);
             console.log(error.code || '', error.message || error);
         }
     };
 
-
     return (
         <div style={{ display: "flex", alignItems: "center", minHeight: "100vh" }}>
             <Stack direction="column" rowGap={2} width="50%" margin={"0 auto"} maxWidth={400}>
-                <Typography variant="h5" align="center">Add organization</Typography>
-                <TextField
-                    autoFocus
-                    required
-                    size="small"
-                    label="Name"
-                    variant="outlined"
-                    value={name}
-                    onChange={(e) => setName(e.target.value.toUpperCase())}
-                    inputProps={{
-                        style: { textTransform: 'uppercase' },
-                    }}
-                />
-                <TextField
-                    required
-                    size="small"
-                    label="Group Link"
-                    variant="outlined"
-                    value={groupLink}
-                    onChange={(e) => setGroupLink(e.target.value)}
-                />
-                <Button
-                    variant="contained"
-                    onClick={handleRegister}
+                <Formik
+                    initialValues={initialValues}
+                    validationSchema={validationSchema}
+                    onSubmit={handleRegister}
                 >
-                    Add
-                </Button>
-                <Button
-                    variant="outlined"
-                    onClick={handleClear}
-                >
-                    Clear
-                </Button>
+                    {(props) => (
+                        <Form>
+                            <Typography variant="h4" align="center" mb={2}>
+                                Add New Organization
+                            </Typography>
+                            <TextField
+                                name="name"
+                                label="Name"
+                                type="text"
+                                formikProps={props}
+                            />
+                            <TextField
+                                name="groupLink"
+                                label="Group Link"
+                                type="text"
+                                formikProps={props}
+                            />
+                            <TextField
+                                name="round"
+                                label="Round"
+                                type="number"
+                                formikProps={props}
+                            />
+                             <Stack direction="row" spacing={2} justifyContent="center" alignItems="center">
+                                <Button
+                                    fullWidth
+                                    type="submit"
+                                    variant="contained"
+                                >
+                                    Add Organization
+                                </Button>
+                                <Button
+                                    type="reset"
+                                    fullWidth
+                                    variant="outlined"
+                                >
+                                    Clear
+                                </Button>
+                            </Stack>
 
-                {message && <Typography align="center" variant="subtitle2">{message}</Typography>}
+                            {message && <Typography align="center" variant="subtitle2" m={2}>{message}</Typography>}
+                        </Form>
+                    )}
+                </Formik>
             </Stack>
         </div>
     )
