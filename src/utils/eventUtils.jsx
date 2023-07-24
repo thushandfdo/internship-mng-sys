@@ -60,6 +60,24 @@ export const getEventsByCompanyId = async (company) => {
     }
 };
 
+export const getEventsByStudentAndCompany = async (studentId, companyId) => {
+    try {
+        const events = await getEvents();
+
+        if (events?.length === 0) {
+            return null;
+        }
+
+        const eventsForStudentAndCompany = events.filter((event) =>
+            event.student === studentId && event.company === companyId
+        );
+
+        return eventsForStudentAndCompany.length > 0 ? eventsForStudentAndCompany : null;
+    } catch (error) {
+        console.error("Error fetching reps:", error);
+    }
+};
+
 export const checkEvent = async (company, student, interviewDateTime) => {
     try {
         const currentEvents = await getEvents();
@@ -82,27 +100,75 @@ export const checkEvent = async (company, student, interviewDateTime) => {
     }
 };
 
-export const validateWhenUpdatingEvent = async (newEvent) => {
+const validateEventDates = (event) => {
+    if (event.calledDateTime > event.interviewDateTime) {
+        throw new Error('Interview date should be greater than call date');
+    }
+};
+
+export const validateBeforeInsert = async (newEvent) => {
     try {
-        const studentEvents = await getEventsByStudentId(newEvent.student);
+        validateEventDates(newEvent);
+
+        const studentEvents = await getEventsByStudentAndCompany(newEvent.student, newEvent.company);
+
+        if (studentEvents?.length === 0) {
+            return true;
+        }
+
+        const eventsOtherThanSelected = studentEvents.filter(event => event.status !== 'selected');
+
+        if (eventsOtherThanSelected?.length > 0) {
+            throw new Error('All the previous events should be marked as selected');
+        }
+
+        return true;
+    }
+    catch (error) {
+        throw new Error(error);
+    }
+};
+
+export const validateBeforeUpdate = async (updatingEvent) => {
+    try {
+        validateEventDates(updatingEvent);
+
+        const studentEvents = await getEventsByStudentAndCompany(updatingEvent.student, updatingEvent.company);
+
+        console.log('studentEvents', studentEvents);
 
         const sortedStudentEvents = studentEvents.sort((e1, e2) => {
             return e1.created - e2.created;
         });
 
-        const index = sortedStudentEvents.findIndex((event) => event.id === newEvent.id);
-        if (index >= 0) {
-            for (let i = index + 1; i < sortedStudentEvents.length; i++) {
-                if (sortedStudentEvents[i].interviewDateTime <= newEvent.interviewDateTime) {
-                    throw new Error('Interview date and time should be less than the next interview date and time' + sortedStudentEvents[i].interviewDateTime);
-                }
+        console.log('sortedStudentEvents', sortedStudentEvents);
+
+        const index = sortedStudentEvents.findIndex((event) => event.id === updatingEvent.id);
+
+        for (let i = 0; i < sortedStudentEvents.length; i++) {
+            const event = sortedStudentEvents[i];
+
+            if (i < index && (
+                updatingEvent.interviewDateTime <= event.interviewDateTime ||
+                updatingEvent.calledDateTime <= event.calledDateTime 
+            )) {
+                throw new Error('Interview date should be greater than all the previous events');
+            }
+            else if (i > index &&
+                (
+                    updatingEvent.interviewDateTime >= event.interviewDateTime ||
+                    updatingEvent.calledDateTime >= event.calledDateTime ||
+                    updatingEvent.status !== 'selected'
+                )
+            ) {
+                throw new Error('All the previous events should be marked as selected');
             }
         }
 
         return true;
     }
     catch (error) {
-        console.error("Error checking user:", error);
+        throw new Error(error);
     }
 };
 
@@ -121,10 +187,9 @@ export const addEvent = async (event) => {
     }
 };
 
-export const updateUser = async (id, event) => {
+export const updateEvent = async (id, newEvent) => {
     try {
         const eventCollection = collection(db, 'events');
-        const newEvent = { name: event.name, age: event.age + 1 };
         const eventDoc = doc(eventCollection, id);
         await updateDoc(eventDoc, newEvent);
     }
@@ -133,7 +198,7 @@ export const updateUser = async (id, event) => {
     }
 };
 
-export const deleteUser = async (id) => {
+export const deleteEvent = async (id) => {
     try {
         const eventCollection = collection(db, 'events');
         const eventDoc = doc(eventCollection, id);

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Formik, Form } from 'formik';
+import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { Timestamp } from 'firebase/firestore'
 
@@ -12,7 +12,7 @@ import MenuItem from '@mui/material/MenuItem';
 
 // local imports
 import { DatePicker, Autocomplete, Table, DialogForm, TimePicker } from '../../components';
-import { addEvent, checkEvent, getEvents } from '../../utils/eventUtils';
+import { addEvent, checkEvent, deleteEvent, getEvents, updateEvent, validateBeforeInsert, validateBeforeUpdate } from '../../utils/eventUtils';
 import { getOrgById, getOrgs } from '../../utils/orgUtils';
 import { getUserById, getUsersByRole } from '../../utils/userUtils';
 
@@ -21,7 +21,10 @@ const Events = () => {
     const [events, setEvents] = useState([]);
     const [companies, setCompanies] = useState([]);
     const [students, setStudents] = useState([]);
+
     const [isDialogOpened, setIsDialogOpened] = useState(false);
+    const [isUpdating, setIsUpdating] = useState(false);
+    const [updatingEventId, setUpdatingEventId] = useState('');
 
     const types = [
         { key: 'calling', value: 'Calling Interview' },
@@ -82,6 +85,7 @@ const Events = () => {
                     const status = statuses.find((status) => status.key === event.status)?.value;
 
                     return {
+                        ...event,
                         company: company?.name,
                         student: student?.firstName + ' ' + student?.lastName,
                         calledDate,
@@ -125,6 +129,8 @@ const Events = () => {
 
     const handleDialogClose = () => {
         setIsDialogOpened(false);
+        setIsUpdating(false);
+        formik.resetForm();
     };
 
     const handleSave = async (values, onSubmitProps) => {
@@ -146,12 +152,14 @@ const Events = () => {
             const event = {
                 company: values.company?.id,
                 student: values.student?.id,
-                calledDateTime: Timestamp.fromDate(values.calledDate), 
+                calledDateTime: Timestamp.fromDate(values.calledDate),
                 created: Timestamp.fromDate(new Date()),
                 interviewDateTime: Timestamp.fromDate(interviewDateTime),
                 type: values.type,
                 status: values.status,
             };
+
+            await validateBeforeInsert(event);
 
             const error = await addEvent(event);
 
@@ -166,43 +174,106 @@ const Events = () => {
             handleDialogClose();
         } catch (error) {
             setMessage(error.message);
+            console.error(error.code || '', error.message || error);
+        }
+    };
+
+    const handleUpdate = async (values, _onSubmitProps_) => {
+        try {
+            const event = {
+                id: updatingEventId,
+                company: values.company?.id,
+                student: values.student?.id,
+                calledDateTime: Timestamp.fromDate(values.calledDate),
+                interviewDateTime: Timestamp.fromDate(values.interviewDate),
+                type: values.type,
+                status: values.status,
+            };
+
+            await validateBeforeUpdate(event);
+
+            const error = await updateEvent(updatingEventId, event);
+
+            if (error) {
+                throw new Error(error);
+            }
+
+            setMessage('Successfully updated event');
+            fetchEvents();
+            handleDialogClose();
+        }
+        catch (error) {
+            setMessage(error.message);
+            console.error(error.code || '', error.message || error);
+        }
+    };
+
+    const formik = useFormik({
+        initialValues,
+        validationSchema,
+        onSubmit: isUpdating ? handleUpdate : handleSave,
+    });
+
+    const setToEdit = (row) => {
+        setUpdatingEventId(row.id);
+
+        formik.setValues({
+            company: companies.filter((company) => company.name === row.company)[0],
+            student: students.filter((student) => (student.firstName + ' ' + student.lastName) === row.student)[0],
+            calledDate: new Date(row.calledDate),
+            interviewDate: new Date(row.interviewDate),
+            interviewTime: new Date(`1970-01-01 ${row.interviewTime}`),
+            type: types.filter((type) => type.value === row.type)[0]?.key,
+            status: statuses.filter((status) => status.value === row.status)[0]?.key,
+        });
+
+        setIsDialogOpened(true);
+        setIsUpdating(true);
+    };
+
+    const handleDelete = async (id) => {
+        try {
+            await deleteEvent(id);
+        }
+        catch (error) {
+            setMessage(error.message);
             console.log(error.code || '', error.message || error);
         }
     };
 
-    const newEventForm = (props) => (
-        <Form>
+    const newEventForm = () => (
+        <div>
             <Autocomplete
                 name='company'
                 label="Company"
                 options={companies}
                 optionLabel='name'
-                formikProps={props}
+                formikProps={formik}
             />
             <Autocomplete
                 name='student'
                 label="Student"
                 options={students}
                 optionLabel='firstName'
-                formikProps={props}
+                formikProps={formik}
             />
 
             <DatePicker
                 label="Called Date"
                 name="calledDate"
-                formikProps={props}
+                formikProps={formik}
             />
 
             <DatePicker
                 label="Interview Date"
                 name="interviewDate"
-                formikProps={props}
+                formikProps={formik}
             />
 
             <TimePicker
                 label="Interview Time"
                 name="interviewTime"
-                formikProps={props}
+                formikProps={formik}
             />
 
             <MuiTextField
@@ -212,9 +283,10 @@ const Events = () => {
                 label="Type"
                 name="type"
                 defaultValue={''}
-                onChange={props.handleChange}
-                error={props.touched.type && Boolean(props.errors.type)}
-                helperText={props.touched.type && props.errors.type}
+                value={formik.values.type ?? ''}
+                onChange={formik.handleChange}
+                error={formik.touched.type && Boolean(formik.errors.type)}
+                helperText={formik.touched.type && formik.errors.type}
                 sx={{ mb: 2 }}
             >
                 {types.map((type) => (
@@ -230,11 +302,12 @@ const Events = () => {
                 size="small"
                 label="Status"
                 name="status"
-                defaultValue={statuses[0].key}
-                onChange={props.handleChange}
-                error={props.touched.status && Boolean(props.errors.status)}
-                helperText={props.touched.status && props.errors.status}
-                disabled={true}
+                defaultValue={formik.values.status ?? ''}
+                value={formik.values.status ?? ''}
+                onChange={formik.handleChange}
+                error={formik.touched.status && Boolean(formik.errors.status)}
+                helperText={formik.touched.status && formik.errors.status}
+                disabled={!isUpdating}
                 sx={{ mb: 2 }}
             >
                 {statuses.map((status) => (
@@ -249,20 +322,22 @@ const Events = () => {
                     fullWidth
                     type="submit"
                     variant="contained"
+                    onClick={formik.handleSubmit}
                 >
-                    Save
+                    {isUpdating ? 'Update' : 'Save'}
                 </Button>
                 <Button
                     type='reset'
                     fullWidth
                     variant="outlined"
+                    onClick={formik.resetForm}
                 >
                     Clear
                 </Button>
             </Stack>
 
             {message && <Typography align="center" variant="subtitle2" m={2}>{message}</Typography>}
-        </Form>
+        </div>
     );
 
     return (
@@ -271,20 +346,21 @@ const Events = () => {
 
             <DialogForm
                 isOpen={isDialogOpened}
-                header='Add new Event'
+                header={isUpdating ? 'Update an Event' : 'Add new Event'}
                 handleDialogClose={handleDialogClose}
             >
-                <Formik
-                    initialValues={initialValues}
-                    validationSchema={validationSchema}
-                    onSubmit={handleSave}
-                >
-                    {(props) => newEventForm(props)}
-                </Formik>
+                {newEventForm()}
             </DialogForm>
 
             <Typography variant="h4" align="center">Events</Typography>
-            <Table search='' columns={columns} rows={events} indexing={true} />
+            <Table
+                search=''
+                columns={columns}
+                rows={events}
+                indexing={true}
+                onEdit={setToEdit}
+                onDelete={handleDelete}
+            />
         </div>
     )
 };
