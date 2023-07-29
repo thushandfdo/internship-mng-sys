@@ -5,86 +5,135 @@ import { auth } from '../../firebase/firebase.jsx';
 import Typography from "@mui/material/Typography";
 
 // local imports
-import { getOrgs } from "../../utils/orgUtils";
+import { getOrgs,getStudentsByCompany,getOrgsByStudent } from "../../utils/orgUtils";
 import { getUser } from '../../utils/userUtils.jsx';
 import { Table } from "../../components";
 
 const ViewOrganizations = () => {
     const [orgList, setOrgList] = useState([]);
+    const [userOrgs, setUserOrgs] = useState([]);
+    const [stdList, setStdList] = useState(null);
     const [grpLink, setGrpLink] = useState("");
-    const [isclicked, setIsClicked] = useState(false);
-
     const [currentUser, setCurrentUser] = useState(null);
 
     useEffect(() => {
         const getCurrentUser = async (email) => {
             if (email) {
                 const loggedUser = await getUser(email);
-                setCurrentUser(loggedUser);
+                if (loggedUser) setCurrentUser(loggedUser);
+                fetchStudentOrgs(loggedUser.id); 
             }
         };
+
+        const fetchOrg = async () => {
+            await getOrgs()
+            .then((res) => {
+                
+                setOrgList(res)
+                setGrpLink(res[0].groupLink)
+            })
+            .catch((err)=>{
+                console.log(err)
+            })
+        }
+
+        const fetchStudentOrgs = async (user) =>{
+            await getOrgsByStudent(user)
+            .then((res)=>{
+                setUserOrgs(res)
+            })
+            .catch((err)=>{
+                console.log(err)
+            }) 
+        }
+
         getCurrentUser(auth.currentUser?.email);
+        fetchOrg(); 
+           
     }, []);
 
 
-    const fetchOrg = async () => {
-        await getOrgs().then((res) => {
-            setOrgList(res)
-            setGrpLink(res[0].groupLink)
-        });
-    }
 
 
-    useEffect(() => {
-        fetchOrg();
-    }, [])
-
-    const columns = [
-        { id: 'round', label: '#Round' },
-        { id: 'name', label: 'Company Name' },
+    const mainColumns = [
+        { id: 'round', label: '#Round',filterField: 'text' },
+        { id: 'name', label: 'Company Name',filterField: 'text' },
     ];
 
-    if (currentUser.role==="rep" || currentUser.role==="superAdmin") {
-        columns.push({ id: 'groupLink', label: 'WhatsApp Group Link' });
+    const studentColumns = [
+        { id: 'regNo', label: 'Index No',filterField: 'text' },
+        { id: 'name', label: 'Name',filterField: 'text' },
+    ];
+
+    if (currentUser?.role==="rep" || currentUser?.role==="superAdmin") {
+        mainColumns.push(
+            { id: 'groupLink', label: 'WhatsApp Group Link',filterField: 'text' },
+            { id: 'ongoingCount', label: 'Ongoing' },
+            { id: 'selectedCount', label: 'Selected' },
+            { id: 'notSelectedCount', label: 'NS' },
+            { id: 'rejectedCount', label: 'rejected' },
+            );
     }
 
+    
+
     const renderCompanyName = (name) => {
-        if (name==="LSEG") {
+        const handleClick =  async (name)=>{
+            setStdList(null);
+             await getStudentsByCompany(name)
+            .then((res)=>{
+                 setStdList(res)  
+            })
+            .catch((error)=>{
+                console.log(error)
+            })
+            
+        }
+        if (!currentUser?.role==="rep" && userOrgs && userOrgs.some((org) => org.company === name)) {
+            console.log(1)
             return (
                 <span
-                onClick={()=>setIsClicked(true)} 
-                style={{textDecoration:"underline",cursor:"pointer",color:"blue"}}>
+                    onClick={() => handleClick(name)}
+                    style={{ textDecoration: "underline", cursor: "pointer", color: "blue" }}
+                >
                     {name}
+                </span>
+            );
+        } 
+        if(currentUser?.role==="rep") {
+            return(
+                <span
+                onClick={() => handleClick(name)}
+                style={{ textDecoration: "underline", cursor: "pointer", color: "blue" }}
+            >
+                {name}
                 </span>
             )
         }
-        else {
-            return <span>{name}</span>;
-        }
+        return <span>{name}</span>
     };
 
     return (
         <>
-        <div style={{ display: "flex", justifyContent:"space-evenly"}}>
+        <div style={{ display: "flex", justifyContent:"space-evenly",gap:"2vw"}}>
             <div>
-                <Typography variant="h4" align="center" mb="2vh">Organizations</Typography>
+                <Typography variant="h4" align="center" mb="2vh" mt="2vh">Organizations</Typography>
                 <Table 
-                search={''} 
-                columns={columns} 
+                columns={mainColumns} 
                 rows={orgList.map((org) => ({
                         ...org,
                         name: renderCompanyName(org.name),
                     }))}
                 indexing={true} />
             </div>
-            {isclicked && <div>
-            <Typography variant="h4" align="center" mb="3vh">Details</Typography>
-            {currentUser.role==="student" && <a href={grpLink} style={{position:"relative",bottom:"2vh"}}>WHATSAPP GROUP LINK</a>}
+
+
+            {stdList && <div>
+            <Typography variant="h4" align="center" mb="3vh" mt="1vh">Details</Typography>
+            {currentUser?.role==="student" && <a href={grpLink} style={{position:"relative",bottom:"2vh"}}>WHATSAPP GROUP LINK</a>}
             <Table 
-                columns={[{ id: 'round', label: 'Student' }]} 
-                rows={orgList.map((org) => ({
-                        round:org.round
-                    }))}
+                columns={studentColumns}
+                rows={stdList}
                 indexing={true} />
             </div>} 
         </div>

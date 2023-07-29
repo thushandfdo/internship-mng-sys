@@ -72,21 +72,21 @@ const TableBody = (props) => {
         setIsConfirmOpened(false);
     };
 
-    const getFilteredList = () => {
-        let list = stableSort(rows, getComparator(order, orderBy));
+        const getFilteredList = () => {
+            let list = stableSort(rows, getComparator(order, orderBy));
 
-        for (let searchField in search) {
-            list = list.filter((row) =>
-                columns.some((column) =>
-                    column.id === searchField
-                        ? row[column.id]?.toLowerCase().includes(search[searchField]?.toLowerCase())
-                        : false
-                )
-            );
-        }
+            for (let searchField in search) {
+                list = list.filter((row) =>
+                    columns.some((column) =>
+                        (column.id === searchField)
+                            ? column.id?.toLowerCase().includes(search[searchField]?.toLowerCase())
+                            : false
+                    )
+                );
+            }
 
-        return list;
-    };
+            return list;
+        };
 
     return (
         <>
