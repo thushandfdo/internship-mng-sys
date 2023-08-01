@@ -56,7 +56,7 @@ const ViewOrganizations = () => {
 
 
     const mainColumns = [
-        { id: 'round', label: '#Round',filterField: 'text' },
+        { id: 'round', label: '#Round',filterField: [{key:"1",value:"Round 1"},{key:"2",value:"Round 2"}] },
         { id: 'name', label: 'Company Name',filterField: 'text' },
     ];
 
@@ -67,7 +67,7 @@ const ViewOrganizations = () => {
 
     if (currentUser?.role==="rep" || currentUser?.role==="superAdmin") {
         mainColumns.push(
-            { id: 'groupLink', label: 'WhatsApp Group Link',filterField: 'text' },
+            
             { id: 'ongoingCount', label: 'Ongoing' },
             { id: 'selectedCount', label: 'Selected' },
             { id: 'notSelectedCount', label: 'NS' },
@@ -113,6 +113,10 @@ const ViewOrganizations = () => {
         return <span>{name}</span>
     };
 
+    const handleClear = ()=>{
+        setStdList(null)
+    }
+
     return (
         <>
         <div style={{ display: "flex", justifyContent:"space-evenly",gap:"2vw"}}>
@@ -130,11 +134,12 @@ const ViewOrganizations = () => {
 
             {stdList && <div>
             <Typography variant="h4" align="center" mb="3vh" mt="1vh">Details</Typography>
-            {currentUser?.role==="student" && <a href={grpLink} style={{position:"relative",bottom:"2vh"}}>WHATSAPP GROUP LINK</a>}
+             <a href={grpLink} style={{position:"relative",bottom:"2vh"}}>WHATSAPP GROUP LINK</a>
             <Table 
                 columns={studentColumns}
                 rows={stdList}
                 indexing={true} />
+            <button onClick={handleClear} style={{marginTop:"2vh"}}>clear</button>
             </div>} 
         </div>
             
