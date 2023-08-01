@@ -15,7 +15,7 @@ import { border } from './Table';
 
 const TableHead = (props) => {
     const {
-        onSearchChange, order, orderBy, onRequestSort, columns, isDeleteCol, isEditCol, indexing
+        search, onSearchChange, order, orderBy, onRequestSort, columns, isDeleteCol, isEditCol, indexing
     } = props;
 
     const createSortHandler = (property) => (event) => {
@@ -96,7 +96,7 @@ const TableHead = (props) => {
                     )
                 }
             </TableRow>
-            <TableRow>
+            {search && <TableRow>
                 {
                     indexing && (
                         <TableCell
@@ -126,12 +126,14 @@ const TableHead = (props) => {
                                 onChange={(e) => {
                                     onSearchChange(column.id, e.target.value);
                                 }}
-                                sx={{ 
+                                sx={{
                                     '& .MuiInputBase-input': { padding: '4px 8px' },
+                                    // maxWidth: '90px',
                                 }}
                             />
                         ) : (
                             <Autocomplete
+                                size='small'
                                 defaultValue={null}
                                 // value={search[column.id] ?? null}
                                 options={column.filterField}
@@ -142,7 +144,21 @@ const TableHead = (props) => {
                                         {...params} variant='outlined' placeholder='Select'
                                     />
                                 }
-                                size='small'
+                                renderOption={(props, option) =>
+                                    <Typography {...props} sx={{
+                                        whiteSpace: 'nowrap',
+                                        overflow: 'scroll',
+                                        // textOverflow: 'ellipsis',
+                                        // width: '100%'
+                                    }}>
+                                        {option.value}
+                                    </Typography>
+                                }
+                                componentsProps={{
+                                    paper: {
+                                        minWidth: '450px'
+                                    },
+                                }}
                                 sx={{
                                     '& .MuiAutocomplete-inputRoot[class*="MuiOutlinedInput-root"]': {
                                         padding: '2px 8px',
@@ -163,13 +179,13 @@ const TableHead = (props) => {
                         />
                     )
                 }
-            </TableRow>
+            </TableRow>}
         </MuiTableHead>
     );
 };
 
 TableHead.propTypes = {
-    // search: PropTypes.object,
+    search: PropTypes.object,
     onSearchChange: PropTypes.func,
     onRequestSort: PropTypes.func.isRequired,
     order: PropTypes.oneOf(['asc', 'desc']).isRequired,

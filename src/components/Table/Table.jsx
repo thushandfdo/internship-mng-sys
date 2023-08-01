@@ -62,7 +62,7 @@ const EnhancedTable = (props) => {
                 <TableContainer>
                     <Table>
                         <TableHead
-                            // search={search}
+                            search={search}
                             order={order}
                             orderBy={orderBy}
                             onRequestSort={handleRequestSort}
